@@ -192,7 +192,7 @@ function goBack() {
   height: 92rpx;
   line-height: 92rpx;
   border-radius: 16rpx;
-  background-color: #4b5563;
+  background-color: #1a1a1a;
   color: #fff;
   font-size: 30rpx;
   border: none;

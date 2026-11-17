@@ -262,7 +262,7 @@ function goBack() {
 }
 
 .verify-page__code-box--active {
-  border-color: #4b5563;
+  border-color: #1a1a1a;
 }
 
 .verify-page__code-input {
@@ -288,7 +288,7 @@ function goBack() {
 
 .verify-page__resend {
   font-size: 24rpx;
-  color: #4b5563;
+  color: #1a1a1a;
 }
 
 .verify-page__resend--disabled {
@@ -320,7 +320,7 @@ function goBack() {
   height: 92rpx;
   line-height: 92rpx;
   border-radius: 16rpx;
-  background-color: #4b5563;
+  background-color: #1a1a1a;
   color: #fff;
   font-size: 30rpx;
   border: none;

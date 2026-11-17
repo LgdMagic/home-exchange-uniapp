@@ -1,11 +1,14 @@
 <template>
   <view class="login-page">
     <view class="login-page__top">
-      <view class="login-page__avatar">
-        <text class="login-page__avatar-emoji">🐱</text>
-      </view>
+      <!--
+        logo 图片当前为生成的占位图（src/static/images/logo-placeholder.jpg），
+        等产品/设计侧提供正式 Logo 资源后替换本文件即可，无需改动代码。
+      -->
+      <image class="login-page__logo" src="/static/images/logo-placeholder.jpg" mode="aspectFit" />
       <text class="login-page__title">自由旅猫</text>
-      <text class="login-page__subtitle">住进别人的生活，交换一段旅程</text>
+      <text class="login-page__title-en">WANDER CAT</text>
+      <text class="login-page__subtitle">住进别人的生活 交换一段旅程</text>
     </view>
 
     <view class="login-page__bottom">
@@ -22,8 +25,7 @@
           open-type="getPhoneNumber"
           @getphonenumber="onGetPhoneNumber"
         >
-          <text class="login-page__btn-icon">💚</text>
-          <text>微信一键登录</text>
+          微信一键登录
         </button>
         <view v-if="!agreedToTerms" class="login-page__btn-mask" @tap="onWechatButtonTap"></view>
       </view>
@@ -35,7 +37,7 @@
       <view class="login-page__agreement">
         <checkbox-group @change="onAgreementChange">
           <label class="login-page__agreement-label">
-            <checkbox :checked="agreedToTerms" color="#4b5563" style="transform: scale(0.75)" />
+            <checkbox :checked="agreedToTerms" color="#1a1a1a" style="transform: scale(0.75)" />
             <text class="login-page__agreement-text">
               我已阅读并同意
               <text class="login-page__agreement-link" @tap.stop="openAgreement('user')"
@@ -155,27 +157,26 @@ function openAgreement(type: "user" | "privacy") {
   padding-top: 180rpx;
 }
 
-.login-page__avatar {
-  width: 140rpx;
-  height: 140rpx;
+.login-page__logo {
+  width: 160rpx;
+  height: 160rpx;
   border-radius: 50%;
-  border: 2rpx dashed #d0d0d0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 32rpx;
-  background-color: #f5f5f5;
-}
-
-.login-page__avatar-emoji {
-  font-size: 64rpx;
+  margin-bottom: 24rpx;
 }
 
 .login-page__title {
   font-size: 44rpx;
   font-weight: bold;
   color: #1a1a1a;
-  margin-bottom: 16rpx;
+  letter-spacing: 4rpx;
+}
+
+.login-page__title-en {
+  font-size: 18rpx;
+  color: #999;
+  letter-spacing: 6rpx;
+  margin-top: 4rpx;
+  margin-bottom: 20rpx;
 }
 
 .login-page__subtitle {
@@ -209,7 +210,7 @@ function openAgreement(type: "user" | "privacy") {
 }
 
 .login-page__btn--wechat {
-  background-color: #4b5563;
+  background-color: #1a1a1a;
   color: #fff;
 }
 
@@ -222,18 +223,14 @@ function openAgreement(type: "user" | "privacy") {
   inset: 0;
 }
 
-.login-page__btn-icon {
-  margin-right: 10rpx;
-}
-
 .login-page__btn--outline {
   background-color: #fff;
-  color: #333;
+  color: #1a1a1a;
   border: 2rpx solid #e0e0e0;
 }
 
 .login-page__agreement {
-  margin-top: 8rpx;
+  margin-top: 24rpx;
 }
 
 .login-page__agreement-label {
@@ -248,6 +245,7 @@ function openAgreement(type: "user" | "privacy") {
 }
 
 .login-page__agreement-link {
-  color: #4b5563;
+  color: #3b82f6;
+  text-decoration: underline;
 }
 </style>

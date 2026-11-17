@@ -83,7 +83,7 @@ function onLogout() {
 
 .account-card__logout {
   font-size: 26rpx;
-  color: #4b5563;
+  color: #1a1a1a;
   background-color: #fff;
   border: 1rpx solid #e0e0e0;
   border-radius: 12rpx;
