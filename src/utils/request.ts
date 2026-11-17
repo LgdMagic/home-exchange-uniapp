@@ -13,6 +13,7 @@
  */
 
 import { StorageKey, getStorage } from "./storage";
+import { useUserStore } from "@/store/user";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 const TIMEOUT = 10000;
@@ -61,10 +62,19 @@ function hideLoading() {
   }
 }
 
-/** 统一 401 处理：清理登录态并跳转登录页；具体登录页路径以项目实际路由为准 */
+/**
+ * 统一 401 处理：清理登录态并跳转登录页。
+ *
+ * 注意：Backend 当前未提供 Access Token 刷新接口（见 design.md Risks 第 2 条），
+ * 所以这里不做静默刷新重试，直接要求用户重新登录。
+ */
 function handleUnauthorized() {
-  // TODO: 接入真实登录态管理后，调用 user store 的 logout，并跳转登录页。
-  console.warn("[request] 登录态失效（401），请接入统一登出与登录页跳转逻辑");
+  const userStore = useUserStore();
+  if (userStore.isLoggedIn) {
+    userStore.logout();
+    uni.showToast({ title: "登录已过期，请重新登录", icon: "none" });
+    uni.reLaunch({ url: "/pages/login/index" });
+  }
 }
 
 export function request<T = unknown, D = unknown>(options: RequestOptions<D>): Promise<T> {
@@ -76,7 +86,7 @@ export function request<T = unknown, D = unknown>(options: RequestOptions<D>): P
   };
 
   if (withAuth) {
-    const token = getStorage<string>(StorageKey.TOKEN);
+    const token = getStorage<string>(StorageKey.ACCESS_TOKEN);
     if (token) {
       finalHeader.Authorization = `Bearer ${token}`;
     }

@@ -9,8 +9,9 @@
  */
 
 export const StorageKey = {
-  TOKEN: "home_exchange_token",
-  USER_INFO: "home_exchange_user_info",
+  ACCESS_TOKEN: "home_exchange_access_token",
+  REFRESH_TOKEN: "home_exchange_refresh_token",
+  ACCOUNT: "home_exchange_account",
 } as const;
 
 export function getStorage<T = unknown>(key: string): T | null {
