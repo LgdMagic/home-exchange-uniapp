@@ -6,10 +6,17 @@
     </view>
 
     <!--
+      小程序默认进入首页，首页自行判断登录态（不做自动跳转登录页）：
+      未登录展示「去登录」入口按钮，登录后展示账号信息（见 design.md Uniapp
+      小节 Decisions：首页为真正的小程序启动页，登录页仅在用户主动触发时进入）。
+    -->
+    <button v-if="!userStore.isLoggedIn" class="login-entry" @tap="goToLogin">去登录</button>
+
+    <!--
       以下账号信息展示区是本次 add-customer-phone-login 联调验证用的临时内容，
       不代表最终首页设计（见 design.md Uniapp 小节任务 2.7）。
     -->
-    <view v-if="userStore.isLoggedIn" class="account-card">
+    <view v-else class="account-card">
       <text class="account-card__label">当前登录账号</text>
       <text class="account-card__phone">
         {{ userStore.account?.countryCode }} {{ userStore.account?.phoneNumber }}
@@ -26,9 +33,12 @@ import { useUserStore } from "@/store/user";
 const title = ref("房屋互换");
 const userStore = useUserStore();
 
+function goToLogin() {
+  uni.reLaunch({ url: "/pages/login/index" });
+}
+
 function onLogout() {
   userStore.logout();
-  uni.reLaunch({ url: "/pages/login/index" });
 }
 </script>
 
@@ -93,6 +103,22 @@ function onLogout() {
 }
 
 .account-card__logout::after {
+  border: none;
+}
+
+.login-entry {
+  margin-top: 60rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  padding: 0 64rpx;
+  border-radius: 40rpx;
+  background-color: #1a1a1a;
+  color: #fff;
+  font-size: 28rpx;
+  border: none;
+}
+
+.login-entry::after {
   border: none;
 }
 </style>

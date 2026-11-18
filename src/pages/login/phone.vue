@@ -1,10 +1,6 @@
 <template>
   <view class="phone-page">
-    <view class="phone-page__nav" :style="{ paddingTop: statusBarHeight + 'px' }">
-      <view class="phone-page__back" @tap="goBack">
-        <text class="phone-page__back-icon">‹</text>
-      </view>
-    </view>
+    <view class="phone-page__nav" :style="{ paddingTop: statusBarHeight + 'px' }"></view>
 
     <view class="phone-page__content">
       <text class="phone-page__title">手机号登录</text>
@@ -68,6 +64,7 @@ onLoad(() => {
     // 理论上不会从登录页在未勾选协议时跳转到这里，双重保险
     uni.showToast({ title: "请先同意用户协议和隐私政策", icon: "none" });
     uni.navigateBack();
+    return;
   }
 });
 
@@ -103,37 +100,18 @@ async function onSendCode() {
     sending.value = false;
   }
 }
-
-function goBack() {
-  uni.navigateBack();
-}
 </script>
 
 <style lang="scss">
 .phone-page {
+  position: relative;
   min-height: 100vh;
   background-color: #fff;
 }
 
 .phone-page__nav {
   height: 88rpx;
-  display: flex;
-  align-items: center;
-  padding: 0 24rpx;
   box-sizing: border-box;
-}
-
-.phone-page__back {
-  width: 64rpx;
-  height: 64rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.phone-page__back-icon {
-  font-size: 48rpx;
-  color: #333;
 }
 
 .phone-page__content {
