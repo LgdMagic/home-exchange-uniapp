@@ -6,6 +6,10 @@
       设计稿中的状态栏（9:41 时间/信号/电量）与灵动岛图案属于 MasterGo 导出模板自带的
       设备外壳装饰，并非页面真实内容——小程序运行时状态栏由系统原生绘制，此处按行业
       惯例不予还原，避免和真机状态栏重叠/冲突。
+      本页使用默认导航栏（不能用 navigationStyle: custom）：微信的「返回首页」小房子
+      只画在原生导航栏上，custom 会把整条栏去掉、只留右上角胶囊。从首页 reLaunch
+      进来后，本页是页面栈最底层且不是首页，系统会自动显示小房子。内容区坐标已减去
+      约 176rpx（状态栏 + 导航栏），避免和原生栏重叠后整体下移。
     -->
     <view class="login-page__logo-wrap">
       <view class="login-page__logo-bg"></view>
@@ -69,6 +73,7 @@ import { loginWithWechatPhone, AUTH_ERROR_MESSAGE } from "@/api/auth";
 import { BusinessError } from "@/utils/request";
 import { useLoginFlowStore } from "@/store/login-flow";
 import { useUserStore } from "@/store/user";
+import { enterAfterLogin } from "@/utils/profile-flow";
 
 const agreedToTerms = ref(false);
 const loginFlow = useLoginFlowStore();
@@ -120,7 +125,7 @@ async function onGetPhoneNumber(e: GetPhoneNumberEvent) {
   try {
     const result = await loginWithWechatPhone({ code, agreedToTerms: true });
     userStore.login(result);
-    uni.reLaunch({ url: "/pages/index/index" });
+    await enterAfterLogin();
   } catch (error) {
     const message =
       error instanceof BusinessError
@@ -160,7 +165,7 @@ function openAgreement(type: "user" | "privacy") {
 .login-page__logo-wrap {
   position: absolute;
   left: 278.73rpx;
-  top: 410.92rpx;
+  top: 234.92rpx;
   width: 192.53rpx;
   height: 192.53rpx;
 }
@@ -191,7 +196,7 @@ function openAgreement(type: "user" | "privacy") {
 .login-page__title-wrap {
   position: absolute;
   left: 242.09rpx;
-  top: 647.24rpx;
+  top: 471.24rpx;
   width: 265.82rpx;
   height: 83.43rpx;
 }
@@ -223,7 +228,7 @@ function openAgreement(type: "user" | "privacy") {
 .login-page__subtitle {
   position: absolute;
   left: 166rpx;
-  top: 775.05rpx;
+  top: 599.05rpx;
   width: 418rpx;
   height: 26rpx;
   line-height: 26rpx;
@@ -238,14 +243,16 @@ function openAgreement(type: "user" | "privacy") {
   left: 43.15rpx;
   width: 672.67rpx;
   height: 104rpx;
+  border-radius: 78px;
+  overflow: hidden;
 }
 
 .login-page__btn-wrap--wechat {
-  top: 1215.47rpx;
+  top: 1039.47rpx;
 }
 
 .login-page__btn-wrap--outline {
-  top: 1346.13rpx;
+  top: 1170.13rpx;
 }
 
 .login-page__btn {
@@ -256,7 +263,8 @@ function openAgreement(type: "user" | "privacy") {
   height: 100%;
   margin: 0;
   padding: 0;
-  border-radius: 13.33rpx;
+  border-radius: 78px;
+  overflow: hidden;
   font-size: 40rpx;
   line-height: 1;
   border: none;
@@ -264,6 +272,7 @@ function openAgreement(type: "user" | "privacy") {
 
 .login-page__btn::after {
   border: none;
+  border-radius: 78px;
 }
 
 .login-page__btn--wechat {
@@ -286,7 +295,7 @@ function openAgreement(type: "user" | "privacy") {
 .login-page__agreement {
   position: absolute;
   left: 48.33rpx;
-  top: 1502.85rpx;
+  top: 1326.85rpx;
   width: 694.32rpx;
   height: 37.29rpx;
 }

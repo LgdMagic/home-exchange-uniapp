@@ -66,6 +66,13 @@ export const useUserStore = defineStore("user", {
       setStorage(StorageKey.ACCOUNT, accountInfo);
     },
 
+    /** 资料页保存昵称或头像后，同步登录态里的账号信息 */
+    updateIdentity(partial: Partial<Pick<AccountInfo, "nickname" | "avatarUrl">>) {
+      if (!this.account) return;
+      this.account = { ...this.account, ...partial };
+      setStorage(StorageKey.ACCOUNT, this.account);
+    },
+
     /** 登出：清空内存与 Storage，仅本地操作（Backend 无登出/吊销接口） */
     logout() {
       this.accessToken = null;

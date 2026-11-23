@@ -112,11 +112,6 @@ export function request<T = unknown, D = unknown>(options: RequestOptions<D>): P
           return;
         }
 
-        if (statusCode === 403) {
-          reject(new BusinessError(403, "没有权限执行此操作"));
-          return;
-        }
-
         if (statusCode && statusCode >= 500) {
           reject(new BusinessError(statusCode, "服务器开小差了，请稍后再试"));
           return;
@@ -132,6 +127,11 @@ export function request<T = unknown, D = unknown>(options: RequestOptions<D>): P
           return;
         }
 
+        if (statusCode === 403) {
+          reject(new BusinessError(403, "没有权限执行此操作"));
+          return;
+        }
+
         // 非标准 Envelope（例如本地 mock 或特殊接口），原样返回，调用方自行处理。
         resolve(data as T);
       },
@@ -144,6 +144,84 @@ export function request<T = unknown, D = unknown>(options: RequestOptions<D>): P
         }
       },
     });
+  });
+}
+
+const UPLOAD_TIMEOUT = 30000;
+
+function readEnvelope<T>(statusCode: number, raw: unknown): T {
+  if (statusCode === 401) {
+    handleUnauthorized();
+    throw new BusinessError(401, "登录已过期，请重新登录");
+  }
+
+  let body: ApiResponse<T> | null = null;
+  if (typeof raw === "string" && raw) {
+    try {
+      body = JSON.parse(raw) as ApiResponse<T>;
+    } catch {
+      body = null;
+    }
+  } else if (raw && typeof raw === "object") {
+    body = raw as ApiResponse<T>;
+  }
+
+  if (body && "code" in body) {
+    if (body.code === 0) return body.data;
+    throw new BusinessError(body.code, body.message || "请求失败");
+  }
+
+  if (statusCode >= 500) {
+    throw new BusinessError(statusCode, "服务器开小差了，请稍后再试");
+  }
+
+  throw new BusinessError(statusCode || -1, "照片上传失败");
+}
+
+/** multipart 上传。不要带 JSON Content-Type，由平台自己补 boundary。网络失败会再试一次。 */
+export function uploadFile<T = unknown>(options: {
+  url: string;
+  filePath: string;
+  name?: string;
+  formData?: Record<string, string>;
+  showLoading?: boolean;
+}): Promise<T> {
+  const { url, filePath, name = "file", formData, showLoading: needLoading = false } = options;
+  const header: Record<string, string> = {};
+  const token = getStorage<string>(StorageKey.ACCESS_TOKEN);
+  if (token) header.Authorization = `Bearer ${token}`;
+
+  if (needLoading) showLoading();
+
+  return new Promise<T>((resolve, reject) => {
+    const attempt = (retriesLeft: number) => {
+      uni.uploadFile({
+        url: `${BASE_URL}${url}`,
+        filePath,
+        name,
+        formData,
+        header,
+        timeout: UPLOAD_TIMEOUT,
+        success: (res) => {
+          try {
+            resolve(readEnvelope<T>(res.statusCode, res.data));
+          } catch (error) {
+            reject(error);
+          }
+        },
+        fail: (err) => {
+          if (retriesLeft > 0) {
+            attempt(retriesLeft - 1);
+            return;
+          }
+          reject(new BusinessError(-1, err.errMsg || "网络异常，请检查网络连接"));
+        },
+      });
+    };
+
+    attempt(1);
+  }).finally(() => {
+    if (needLoading) hideLoading();
   });
 }
 

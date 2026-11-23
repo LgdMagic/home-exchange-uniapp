@@ -1,6 +1,10 @@
 <template>
   <view class="phone-page">
-    <view class="phone-page__nav" :style="{ paddingTop: statusBarHeight + 'px' }"></view>
+    <view class="phone-page__nav" :style="{ paddingTop: statusBarHeight + 'px' }">
+      <view class="phone-page__back" @tap="goBack">
+        <text class="phone-page__back-icon">‹</text>
+      </view>
+    </view>
 
     <view class="phone-page__content">
       <text class="phone-page__title">手机号登录</text>
@@ -8,9 +12,8 @@
 
       <picker :range="regionLabels" :value="regionIndex" @change="onRegionChange">
         <view class="phone-page__field phone-page__field--region">
-          <text class="phone-page__region-code">{{ countryCode }}</text>
-          <text class="phone-page__region-label">{{ regionLabel }}</text>
-          <text class="phone-page__region-arrow">▾</text>
+          <text class="phone-page__field-text">{{ countryCode }} {{ regionLabel }}</text>
+          <text class="phone-page__arrow">›</text>
         </view>
       </picker>
 
@@ -20,10 +23,13 @@
           class="phone-page__input"
           type="number"
           placeholder="请输入手机号"
+          placeholder-class="phone-page__placeholder"
           :maxlength="15"
         />
       </view>
+    </view>
 
+    <view class="phone-page__action" :style="{ paddingBottom: `${safeBottom}px` }">
       <button class="phone-page__submit" :disabled="!canSubmit || sending" @tap="onSendCode">
         {{ sending ? "发送中..." : "获取验证码" }}
       </button>
@@ -42,6 +48,7 @@ import { useLoginFlowStore } from "@/store/login-flow";
 const loginFlow = useLoginFlowStore();
 
 const statusBarHeight = ref(20);
+const safeBottom = ref(0);
 const countryCode = ref(loginFlow.countryCode);
 const phoneNumber = ref(loginFlow.phoneNumber);
 const sending = ref(false);
@@ -59,6 +66,12 @@ const canSubmit = computed(() => /^\d{4,15}$/.test(phoneNumber.value));
 onLoad(() => {
   const info = uni.getSystemInfoSync();
   statusBarHeight.value = info.statusBarHeight ?? 20;
+  const inset = info.safeAreaInsets?.bottom;
+  if (typeof inset === "number") {
+    safeBottom.value = inset;
+  } else if (info.safeArea && info.screenHeight) {
+    safeBottom.value = Math.max(info.screenHeight - info.safeArea.bottom, 0);
+  }
 
   if (!loginFlow.agreedToTerms) {
     // 理论上不会从登录页在未勾选协议时跳转到这里，双重保险
@@ -100,87 +113,129 @@ async function onSendCode() {
     sending.value = false;
   }
 }
+
+function goBack() {
+  uni.navigateBack();
+}
 </script>
 
 <style lang="scss">
 .phone-page {
-  position: relative;
-  min-height: 100vh;
-  background-color: #fff;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f6f2;
 }
 
 .phone-page__nav {
   height: 88rpx;
-  box-sizing: border-box;
+  box-sizing: content-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background-color: #f8f6f2;
+}
+
+.phone-page__back {
+  position: absolute;
+  left: 24rpx;
+  bottom: 12rpx;
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.phone-page__back-icon {
+  font-size: 48rpx;
+  line-height: 1;
+  color: #232423;
 }
 
 .phone-page__content {
-  padding: 40rpx 60rpx 0;
+  flex: 1;
+  padding: 69rpx 63rpx 0;
   display: flex;
   flex-direction: column;
 }
 
 .phone-page__title {
-  font-size: 40rpx;
-  font-weight: bold;
-  color: #1a1a1a;
-  margin-bottom: 16rpx;
+  display: block;
+  text-align: center;
+  font-size: 53rpx;
+  font-weight: 700;
+  line-height: 1;
+  color: #333333;
 }
 
 .phone-page__subtitle {
-  font-size: 24rpx;
-  color: #999;
-  margin-bottom: 56rpx;
+  display: block;
+  margin-top: 19rpx;
+  text-align: center;
+  font-size: 19rpx;
+  line-height: 1;
+  color: #808080;
 }
 
 .phone-page__field {
   display: flex;
   align-items: center;
-  height: 96rpx;
-  border-bottom: 1rpx solid #eee;
-  margin-bottom: 8rpx;
-  position: relative;
+  height: 80rpx;
+  margin-top: 48rpx;
+  border-bottom: 1rpx solid #808080;
 }
 
-.phone-page__region-code {
-  font-size: 30rpx;
-  color: #1a1a1a;
-  margin-right: 12rpx;
+.phone-page__field--region {
+  margin-top: 132rpx;
 }
 
-.phone-page__region-label {
-  font-size: 26rpx;
-  color: #666;
+.phone-page__field-text,
+.phone-page__input,
+.phone-page__placeholder {
   flex: 1;
-}
-
-.phone-page__region-arrow {
-  font-size: 24rpx;
-  color: #999;
+  font-size: 33rpx;
+  letter-spacing: 0.045em;
+  color: #cccccc;
 }
 
 .phone-page__input {
-  flex: 1;
-  font-size: 30rpx;
-  height: 96rpx;
+  height: 80rpx;
+  color: #333333;
+}
+
+.phone-page__arrow {
+  margin-left: 16rpx;
+  font-size: 36rpx;
+  line-height: 1;
+  color: #808080;
+}
+
+.phone-page__action {
+  padding: 0 63rpx 135rpx;
 }
 
 .phone-page__submit {
-  margin-top: 64rpx;
-  height: 92rpx;
-  line-height: 92rpx;
-  border-radius: 16rpx;
-  background-color: #1a1a1a;
-  color: #fff;
-  font-size: 30rpx;
+  width: 100%;
+  height: 104rpx;
+  line-height: 104rpx;
+  padding: 0;
+  border-radius: 78px;
+  overflow: hidden;
+  background-color: #232423;
+  color: #ffffff;
+  font-size: 40rpx;
   border: none;
 }
 
 .phone-page__submit::after {
   border: none;
+  border-radius: 78px;
 }
 
 .phone-page__submit[disabled] {
+  border-radius: 78px;
   background-color: #c0c0c0;
   color: #fff;
   opacity: 1;

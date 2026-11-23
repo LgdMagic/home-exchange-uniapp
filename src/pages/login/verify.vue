@@ -3,10 +3,13 @@
     <!--
       本页按 MasterGo 设计稿「3 短信验证」(layer 3:1394) 1:1 还原，换算规则同登录页：
       画布 1125×2436px，rpx = designPx × 2/3。设计稿顶部的状态栏（9:41 等）同样属于
-      MasterGo 模板自带的设备外壳装饰，不予还原（见 login/index.vue 顶部注释）。
+      MasterGo 模板自带的设备外壳装饰，不予还原。本页使用自定义导航栏，返回箭头按设计稿绘制。
     -->
     <view class="verify-page__header-band"></view>
 
+    <view class="verify-page__back-hit" @tap="goBack">
+      <view class="verify-page__back-icon"></view>
+    </view>
     <text class="verify-page__nav-title">短信验证</text>
 
     <text class="verify-page__subtitle">验证码已发送至 {{ maskedPhone }}</text>
@@ -66,6 +69,7 @@ import { loginWithSms, sendSmsCode, AUTH_ERROR_MESSAGE } from "@/api/auth";
 import { BusinessError } from "@/utils/request";
 import { useLoginFlowStore } from "@/store/login-flow";
 import { useUserStore } from "@/store/user";
+import { enterAfterLogin } from "@/utils/profile-flow";
 
 const loginFlow = useLoginFlowStore();
 const userStore = useUserStore();
@@ -80,12 +84,10 @@ const codeDigits = computed(() => Array.from({ length: 6 }, (_, i) => code.value
 const canSubmit = computed(() => code.value.length === 6);
 
 const maskedPhone = computed(() => {
-  const { countryCode, phoneNumber } = loginFlow;
-  if (phoneNumber.length <= 4) {
-    return `${countryCode} ${phoneNumber}`;
-  }
+  const { phoneNumber } = loginFlow;
+  if (phoneNumber.length <= 4) return phoneNumber;
   const visibleTail = phoneNumber.slice(-4);
-  return `${countryCode} ${"*".repeat(phoneNumber.length - 4)}${visibleTail}`;
+  return `${"*".repeat(phoneNumber.length - 4)}${visibleTail}`;
 });
 
 onLoad(() => {
@@ -161,8 +163,7 @@ async function onSubmit() {
     });
     userStore.login(result);
     loginFlow.reset();
-    // 新用户/老用户均直接进入首页，不强制补全资料（见 spec.md「新用户登录后无需强制完善资料」）
-    uni.reLaunch({ url: "/pages/index/index" });
+    await enterAfterLogin();
   } catch (error) {
     const message =
       error instanceof BusinessError
@@ -176,6 +177,10 @@ async function onSubmit() {
   } finally {
     submitting.value = false;
   }
+}
+
+function goBack() {
+  uni.navigateBack();
 }
 </script>
 
@@ -200,6 +205,28 @@ async function onSubmit() {
   background-color: #ffffff;
 }
 
+/* 设计稿返回箭头本身只有 15.63×31.26rpx，单独加大可点击热区便于真机点击 */
+.verify-page__back-hit {
+  position: absolute;
+  left: 35.92rpx;
+  top: 96.17rpx;
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.verify-page__back-icon {
+  width: 15.63rpx;
+  height: 31.26rpx;
+  opacity: 0.8;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9Ijk5LjE1MDg3ODkwNjI1IDE3OC42ODY3OTYxNjg3NSAyOC41NjQyMDI5OTk5OTk5OTIgNTEuMTI4ODQ3MzAwMDAwMDIiIHdpZHRoPSIyMy40NDI4NzEwOTM3NSIgaGVpZ2h0PSI0Ni44ODYyMzA0Njg3NSI+PHBhdGggZD0iTTEwNi4zOTM0OTc1MDYyNSwyMDQuMjUxMjIwNDY4NzVMMTI3LjcxNTA4MTkwNjI0OTk5LDE4Mi45Mjk0MTQ3Njg3NUwxMjMuNDcyNDE3OTA2MjUsMTc4LjY4Njc5NjE2ODc1TDEwMC4wMjk1NDc0MDYyNSwyMDIuMTI5OTExNDY4NzVROTkuOTI1MzM0OTA2MjUsMjAyLjIzNDEyNzQ2ODc1LDk5LjgzMTgzODgwNjI1LDIwMi4zNDgwNTM0Njg3NVE5OS43MzgzNDI4MDYyNSwyMDIuNDYxOTc4NDY4NzUsOTkuNjU2NDYzNjA2MjUsMjAyLjU4NDUyMDQ2ODc1UTk5LjU3NDU4NDUwNjI1LDIwMi43MDcwNjE0Njg3NSw5OS41MDUxMTA1MDYyNSwyMDIuODM3MDM4NDY4NzVROTkuNDM1NjM2ODA2MjUsMjAyLjk2NzAxNjQ2ODc1LDk5LjM3OTIzNzQwNjI1LDIwMy4xMDMxNzg0Njg3NVE5OS4zMjI4MzgxMDYyNSwyMDMuMjM5MzM3NDY4NzUsOTkuMjgwMDU2NTA2MjUsMjAzLjM4MDM3MTQ2ODc1UTk5LjIzNzI3NDYwNjI1LDIwMy41MjE0MDY0Njg3NSw5OS4yMDg1MjIzMDYyNSwyMDMuNjY1OTU0NDY4NzVROTkuMTc5NzcwMjA2MjUsMjAzLjgxMDUwMTQ2ODc1LDk5LjE2NTMyNDcwNjI1LDIwMy45NTcxNzI0Njg3NVE5OS4xNTA4Nzg5MDYyNSwyMDQuMTAzODQzNDY4NzUsOTkuMTUwODc4OTA2MjUsMjA0LjI1MTIyMjQ2ODc1UTk5LjE1MDg3ODkwNjI1LDIwNC4zOTg2MDE0Njg3NSw5OS4xNjUzMjQ3MDYyNSwyMDQuNTQ1MjcwNDY4NzVROTkuMTc5NzcwMjA2MjUsMjA0LjY5MTk0MDQ2ODc1LDk5LjIwODUyMjMwNjI1LDIwNC44MzY0ODg0Njg3NVE5OS4yMzcyNzQ2MDYyNSwyMDQuOTgxMDM3NDY4NzUsOTkuMjgwMDU2MjA2MjUsMjA1LjEyMjA3MDQ2ODc1UTk5LjMyMjgzODEwNjI1LDIwNS4yNjMxMDM0Njg3NSw5OS4zNzkyMzc0MDYyNSwyMDUuMzk5MjY1NDY4NzVROTkuNDM1NjM2ODA2MjUsMjA1LjUzNTQyNzQ2ODc1MDAyLDk5LjUwNTExMDcwNjI1LDIwNS42NjU0MDM0Njg3NTAwMVE5OS41NzQ1ODQ1MDYyNSwyMDUuNzk1Mzc5NDY4NzUsOTkuNjU2NDYzNjA2MjUsMjA1LjkxNzkyMTQ2ODc1UTk5LjczODM0MjgwNjI1LDIwNi4wNDA0NjI0Njg3NSw5OS44MzE4Mzg4MDYyNSwyMDYuMTU0Mzg4NDY4NzVROTkuOTI1MzM0OTA2MjUsMjA2LjI2ODMxNDQ2ODc1LDEwMC4wMjk1NDc3MDYyNSwyMDYuMzcyNTMwNDY4NzVMMTIzLjQ3MjQxNzkwNjI1LDIyOS44MTU2NDM0Njg3NUwxMjcuNzE1MDgxOTA2MjQ5OTksMjI1LjU3MzAyODQ2ODc1TDEwNi4zOTM0OTc1MDYyNSwyMDQuMjUxMjIwNDY4NzVaIiBmaWxsPSIjMDAwMDAwIi8+PC9zdmc+");
+}
+
 .verify-page__nav-title {
   position: absolute;
   left: 295rpx;
@@ -214,12 +241,13 @@ async function onSubmit() {
 
 .verify-page__subtitle {
   position: absolute;
-  left: 159.33rpx;
+  left: 0;
   top: 299.69rpx;
-  width: 431.33rpx;
+  width: 750rpx;
   height: 33.33rpx;
   line-height: 33.33rpx;
   text-align: center;
+  white-space: nowrap;
   font-size: 33.33rpx;
   color: #333333;
 }
@@ -349,7 +377,8 @@ async function onSubmit() {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 13.33rpx;
+  border-radius: 78px;
+  overflow: hidden;
   background-color: #232423;
   color: #ffffff;
   font-size: 40rpx;
@@ -359,9 +388,11 @@ async function onSubmit() {
 
 .verify-page__submit::after {
   border: none;
+  border-radius: 78px;
 }
 
 .verify-page__submit[disabled] {
+  border-radius: 78px;
   background-color: #c0c0c0;
   color: #ffffff;
   opacity: 1;
